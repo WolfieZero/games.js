@@ -1,0 +1,11 @@
+{
+  "name": "pong.games.js",
+  "version": "1.0.0",
+  "description": "Paddles and a ball",
+  "main": "index.html",
+  "author": "Neil Sweeney",
+  "license": "MIT",
+  "scripts": {
+    "start": "browser-sync start --server './' --files 'index.html' 'app.js' --no-inject-changes --no-notify"
+  }
+}
