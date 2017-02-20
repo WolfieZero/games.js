@@ -3,6 +3,9 @@ class Pong {
     constructor() {
         this.context = null;
         this.config = {
+            game: {
+                fps: 60
+            },
             stage: {
                 width: 480,
                 height: 320,
@@ -19,33 +22,54 @@ class Pong {
         }
     }
 
+    animate(callback) {
+        window.setTimeout(callback, 1000/this.config.game.fps)
+    }
+
     init() {
         this.createStage(this.config.stage.width, this.config.stage.height).then(context => {
 
-            const ball = new Ball(
+            this.context = context;
+
+            this.ball = new Ball(
                 context,
                 5,
                 this.config.stage.width / 2,
                 this.config.stage.height / 2
-            ).draw();
+            );
 
-            const player = new Paddle(
+            this.player = new Paddle(
                 context,
                 this.config.paddle.width,
                 this.config.paddle.height,
                 20,
                 (this.config.stage.height - this.config.paddle.height) / 2,
-            ).draw();
+            );
 
-            const ai = new Paddle(
+            this.ai = new Paddle(
                 context,
                 this.config.paddle.width,
                 this.config.paddle.height,
                 this.config.stage.width - 20,
                 (this.config.stage.height - this.config.paddle.height) / 2,
-            ).draw();
+            );
+
+            const step = () => {
+                this.render();
+                this.animate(step);
+            }
+            this.animate(step);
+            this.player.control();
 
         });
+    }
+
+    render() {
+        this.context.fillStyle = this.config.stage.color;
+        this.context.fillRect(0, 0, this.config.stage.width, this.config.stage.height);
+        this.ai.render();
+        this.ball.render();
+        this.player.render();
     }
 
     createStage(width, height) {
@@ -57,8 +81,6 @@ class Pong {
                 canvas.id = 'pong';
                 canvas.width = width;
                 canvas.height = height;
-                context.fillStyle = this.config.stage.color;
-                context.fillRect(0, 0, width, height);
                 resolve(context);
             }
             catch(error) {
@@ -75,22 +97,26 @@ class Ball {
     constructor(context, size, x, y, color = '#efefef') {
         this.color = color;
         this.context = context;
-        this.xPosition = x;
-        this.yPosition = y;
+        this.x = x;
+        this.y = y;
         this.size = size;
     }
 
-    draw() {
+    render() {
         this.context.beginPath();
         this.context.fillStyle = this.color;
         this.context.arc(
-            this.xPosition,
-            this.yPosition,
+            this.x,
+            this.y,
             this.size,
             2 * Math.PI,
             false
         );
         this.context.fill();
+    }
+
+    move() {
+        this.x += 1;
     }
 
 }
@@ -99,23 +125,46 @@ class Ball {
 class Paddle {
 
     constructor(context, width, height, x, y, color = '#efefef') {
-        this.color = color;
-        this.context = context;
+
+        this.x = x;
+        this.y = y;
+
         this.height = height;
         this.width = width;
-        this.xPosition = x;
-        this.yPosition = y;
+
+        this.color = color;
+        this.context = context;
     }
 
-    draw() {
-        this.context.beginPath();
+    render() {
         this.context.fillStyle = this.color;
         this.context.fillRect(
-            this.xPosition,
-            this.yPosition,
+            this.x,
+            this.y,
             this.width,
             this.height
         );
+    }
+
+    move(y) {
+        this.y += y;
+    }
+
+    control() {
+        let key = null;
+        window.addEventListener('keydown', event => {
+            key = event.keyCode;
+            switch(key) {
+                case 38:
+                    this.move(-10);
+                    break;
+                case 40:
+                    this.move(10);
+                    break;
+                default:
+                    this.move(0);
+            }
+        });
     }
 
 }
