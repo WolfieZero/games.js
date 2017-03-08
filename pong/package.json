@@ -7,5 +7,20 @@
   "license": "MIT",
   "scripts": {
     "start": "browser-sync start --server './' --files 'index.html' 'app.js' --no-inject-changes --no-notify"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wolfiezero/games.js.git"
+  },
+  "keywords": [
+    "pong",
+    "games"
+  ],
+  "bugs": {
+    "url": "https://github.com/wolfiezero/games.js/issues"
+  },
+  "homepage": "https://github.com/wolfiezero/games.js#readme",
+  "devDependencies": {
+    "browser-sync": "^2.18.8"
   }
 }

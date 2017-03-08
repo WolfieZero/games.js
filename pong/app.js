@@ -3,9 +3,6 @@ class Pong {
     constructor() {
         this.context = null;
         this.config = {
-            game: {
-                fps: 60
-            },
             stage: {
                 width: 480,
                 height: 320,
@@ -22,8 +19,13 @@ class Pong {
         }
     }
 
+    /**
+     * Animate the stage.
+     *
+     * @param {Callback} callback
+     */
     animate(callback) {
-        window.setTimeout(callback, 1000/this.config.game.fps)
+        window.requestAnimationFrame(callback);
     }
 
     init() {
@@ -38,38 +40,31 @@ class Pong {
                 this.config.stage.height / 2
             );
 
-            this.player = new Paddle(
+            this.player1 = new Paddle(
                 context,
                 this.config.paddle.width,
                 this.config.paddle.height,
                 20,
-                (this.config.stage.height - this.config.paddle.height) / 2,
+                (this.config.stage.height - this.config.paddle.height) / 2
             );
 
-            this.ai = new Paddle(
+            this.player2 = new Paddle(
                 context,
                 this.config.paddle.width,
                 this.config.paddle.height,
                 this.config.stage.width - 20,
-                (this.config.stage.height - this.config.paddle.height) / 2,
+                (this.config.stage.height - this.config.paddle.height) / 2
             );
 
             const step = () => {
                 this.render();
                 this.animate(step);
+                this.ball.move();
             }
             this.animate(step);
-            this.player.control();
+            this.player1.control();
 
         });
-    }
-
-    render() {
-        this.context.fillStyle = this.config.stage.color;
-        this.context.fillRect(0, 0, this.config.stage.width, this.config.stage.height);
-        this.ai.render();
-        this.ball.render();
-        this.player.render();
     }
 
     createStage(width, height) {
@@ -89,17 +84,50 @@ class Pong {
         });
     }
 
+    render() {
+        this.context.fillStyle = this.config.stage.color;
+        this.context.fillRect(0, 0, this.config.stage.width, this.config.stage.height);
+        this.player1.render();
+        this.player2.render();
+        this.ball.render();
+    }
+
 }
 
 
 class Ball {
 
-    constructor(context, size, x, y, color = '#efefef') {
+    constructor(context, size, x, y, speed = 1, maxSpeed = 3, color = '#efefef') {
         this.color = color;
         this.context = context;
         this.x = x;
         this.y = y;
         this.size = size;
+        this.baseSpeed = speed;
+        this.speedX = speed
+        this.speedY = speed
+    }
+
+    move() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+    }
+
+    changeDirectionX() {
+        this.speedX = (this.speedX - (this.speedX*2)) * this.baseSpeed;
+    }
+
+    changeDirectionY() {
+        this.speedY = (this.speedY - (this.speedY*2)) * this.baseSpeed;
+    }
+
+    physics() {
+        if (this.x > this.context.canvas.width || this.x < 0) {
+            this.changeDirectionX();
+        }
+        if (this.y > this.context.canvas.height || this.y < 0) {
+            this.changeDirectionY();
+        }
     }
 
     render() {
@@ -113,10 +141,7 @@ class Ball {
             false
         );
         this.context.fill();
-    }
-
-    move() {
-        this.x += 1;
+        this.physics();
     }
 
 }
@@ -134,6 +159,7 @@ class Paddle {
 
         this.color = color;
         this.context = context;
+        console.log(this.context);
     }
 
     render() {
@@ -148,18 +174,25 @@ class Paddle {
 
     move(y) {
         this.y += y;
+
+        if (this.y < 0) {
+            this.y = 0;
+        } else if (this.y >= this.context.canvas.height - this.height) {
+            this.y = this.context.canvas.height - this.height;
+        }
     }
 
     control() {
         let key = null;
+        const moveSpeed = 10;
         window.addEventListener('keydown', event => {
             key = event.keyCode;
             switch(key) {
                 case 38:
-                    this.move(-10);
+                    this.move(-moveSpeed);
                     break;
                 case 40:
-                    this.move(10);
+                    this.move(moveSpeed);
                     break;
                 default:
                     this.move(0);
@@ -172,5 +205,6 @@ class Paddle {
 
 window.onload = () => {
     const pong = new Pong;
+    window.pong = pong;
     pong.init();
 }
